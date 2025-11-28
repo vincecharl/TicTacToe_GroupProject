@@ -10,6 +10,7 @@
   --panel:rgba(10,10,20,0.85);
   --muted:#9ac7db;
   --glass:rgba(8,12,20,0.55);
+  --board-size:3;
 }
 
 /* ---------- Base / Background ---------- */
@@ -61,7 +62,7 @@ label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
 
 .button-row{ display:flex; gap:8px; }
 button,input[type="number"]{
-  padding:10px 12px;
+  padding:8px 10px;
   border-radius:10px;
   border:1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.02);
@@ -78,7 +79,7 @@ button.primary{
 }
 .preset-row{ display:flex; gap:8px; flex-wrap:wrap;}
 .preset-btn{
-  padding:8px 10px;
+  padding:6px 8px;
   background:transparent;
   border:1px solid rgba(255,255,255,0.04);
   color:#cfefff;
@@ -107,6 +108,7 @@ button.primary{
   align-items:center;
   z-index:60;
   backdrop-filter:blur(6px);
+  flex-wrap:wrap;
 }
 .score-pill{
   font-weight:800;
@@ -140,15 +142,13 @@ button.primary{
 .board-area{ display:flex; align-items:center; justify-content:center; width:100% }
 #board-wrapper{
   position:relative;
-  padding:22px;
+  padding:16px;
   border-radius:26px;
   display:flex;
   align-items:center;
   justify-content:center;
-  min-width:min(680px,66vw);
+  min-width:min(420px,90vw);
 }
-
-/* ---------- Neon gradient glow ---------- */
 #board-wrapper::before{
   content:"";
   position:absolute;
@@ -161,8 +161,8 @@ button.primary{
   z-index:10;
   pointer-events:none;
 }
-
-/* ---------- Neon slanted moving scanlines ---------- */
+@keyframes neonRun{0%{background-position:0 0}100%{background-position:600% 0}}
+@keyframes neonBlurPulse{0%,100%{filter:blur(8px) saturate(1.1)}50%{filter:blur(14px) saturate(1.2)}}
 #board-wrapper::after {
   content:"";
   position:absolute;
@@ -187,8 +187,6 @@ button.primary{
   0% { background-position: 0 0; }
   100% { background-position: 20px 20px; }
 }
-
-/* ---------- Board Inner ---------- */
 #board-wrapper .inner{
   position:relative;
   z-index:20;
@@ -200,14 +198,14 @@ button.primary{
 }
 
 /* ---------- Board Grid & Cells ---------- */
-#board{ display:grid; gap:12px; }
+#board{ display:grid; gap:8px; grid-template-columns: repeat(var(--board-size), 1fr); }
 .cell{
-  width:120px;
-  height:120px;
+  width:100%;
+  aspect-ratio:1;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:58px;
+  font-size:clamp(28px, 6vw, 58px);
   font-weight:900;
   border-radius:14px;
   background:linear-gradient(180deg, rgba(8,10,18,0.92), rgba(6,8,14,0.9));
@@ -220,17 +218,17 @@ button.primary{
   position:relative;
   overflow:hidden;
 }
-.cell::after {
-  content: '';
-  position: absolute;
-  inset: 0;
+.cell::after{
+  content:'';
+  position:absolute;
+  inset:0;
   background: repeating-linear-gradient(
     45deg,
     rgba(8,246,255,0.12),
     rgba(8,246,255,0.12) 2px,
     rgba(8,246,255,0) 5px
   );
-  transform: translateX(-100%) skewX(-20deg);
+  transform: translateX(-120%) skewX(-20deg);
   animation: neonWave 1.6s linear infinite;
   pointer-events: none;
 }
@@ -238,36 +236,21 @@ button.primary{
   0% { transform: translateX(-120%) skewX(-20deg); }
   100% { transform: translateX(120%) skewX(-20deg); }
 }
-.cell:hover{
-  transform:translateY(-6px) scale(1.04);
-  box-shadow:0 12px 30px rgba(0,0,0,0.45),0 0 28px rgba(8,246,255,0.06), inset 0 0 14px rgba(8,246,255,0.02);
-}
-.cell.win{
-  box-shadow:0 8px 40px rgba(8,246,255,0.12),0 18px 80px rgba(80,0,255,0.08);
-  transform:scale(1.06);
-  background:linear-gradient(180deg, rgba(0,200,220,0.06), rgba(40,10,60,0.12));
-  border:2px solid rgba(8,246,255,0.18);
-}
+.cell:hover{ transform:translateY(-4px) scale(1.02); box-shadow:0 8px 22px rgba(0,0,0,0.45),0 0 18px rgba(8,246,255,0.06), inset 0 0 10px rgba(8,246,255,0.02);}
+.cell.win{ box-shadow:0 8px 40px rgba(8,246,255,0.12),0 18px 80px rgba(80,0,255,0.08); transform:scale(1.06); background:linear-gradient(180deg, rgba(0,200,220,0.06), rgba(40,10,60,0.12)); border:2px solid rgba(8,246,255,0.18);} 
 
-/* ---------- Responsive adjustments ---------- */
-@media (max-width: 1024px) {
-  .app { flex-direction: column; align-items: center; gap: 18px; padding: 12px; }
-  .sidebar { width: 90%; max-width: 400px; }
-  #board-wrapper { min-width: 90vw; padding: 16px; }
-  #board { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); }
-  .cell { width: 60px; height: 60px; font-size: 28px; }
-  button,input[type="number"] { padding: 8px 10px; font-size: 14px; }
-  .scoreboard-top { flex-wrap: wrap; gap: 12px; padding: 10px 14px; top: 8px; }
-}
-@media (max-width: 480px) {
-  #board { grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); }
-  .cell { width: 50px; height: 50px; font-size: 24px; }
-  .sidebar { padding: 8px; }
+/* ---------- Responsive layout ---------- */
+@media (max-width: 768px){
+  .app{ flex-direction: column; align-items: center; gap: 16px; }
+  .sidebar{ width: 95%; order: 2; }
+  #board-wrapper{ min-width: 90vw; padding: 12px; }
+  #board{ gap:6px; }
+  .scoreboard-top{ top:auto; bottom:10px; left:50%; transform:translateX(-50%); flex-wrap:wrap; padding:10px 16px; gap:12px; }
 }
 </style>
 </head>
 <body>
-  <!-- Top scoreboard -->
+<!-- Top scoreboard -->
 <div class="scoreboard-top card" role="status" aria-live="polite">
   <div class="match-info">Round <span id="currentRound">0</span> / <span id="totalRoundsDisp">—</span></div>
   <div class="score-pill">P1: <span id="p1Score">0</span></div>
@@ -287,7 +270,7 @@ button.primary{
       <div class="small-muted" style="margin-top:8px">Choose board before starting the match</div>
     </div>
     <div>
-      <label>Choose total rounds (Option A)</label>
+      <label>Choose total rounds</label>
       <div class="preset-row" id="presetRow">
         <button class="preset-btn" data-val="3" onclick="choosePreset(this)">3</button>
         <button class="preset-btn" data-val="5" onclick="choosePreset(this)">5</button>
@@ -319,21 +302,13 @@ button.primary{
   <!-- Board Area -->
   <div class="board-area">
     <div id="board-wrapper">
-      <div class="inner card" id="innerWrapper" style="min-width:420px;">
+      <div class="inner card" id="innerWrapper">
         <div id="board" role="grid" aria-label="game board"></div>
         <div id="status" style="margin-top:12px; text-align:center; color:var(--muted)">Press Start Match</div>
       </div>
     </div>
   </div>
 </div>
-
-<!-- Match Result Modal -->
-<div id="matchResult" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);padding:20px;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,0.6);z-index:100;color:#cfefff;text-align:center;">
-  <h2 id="matchTitle">Player 1 Wins the Match!</h2>
-  <p id="matchSub">Final score — P1: <span id="finalP1">0</span> | P2: <span id="finalP2">0</span></p>
-  <button class="primary" onclick="closeMatchResult()">OK — Continue</button>
-</div>
-
 <script>
 /* ---------------- STATE ---------------- */
 let boardSize = 3;
@@ -355,6 +330,7 @@ const winSound = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/au
 function setBoardMode(n){
   if(matchActive) return;
   boardSize = n;
+  document.documentElement.style.setProperty('--board-size', n);
   document.getElementById('mode3').disabled = (n===3);
   document.getElementById('mode4').disabled = (n===4);
   renderEmptyBoard();
@@ -449,7 +425,7 @@ function startRound(){
   document.querySelectorAll('.cell').forEach(c=>{ c.classList.remove('win'); c.textContent=''; });
   document.getElementById('currentRound').textContent=currentRound;
   document.getElementById('totalRoundsDisp').textContent=totalRounds;
-  updateStatus(`Round ${currentRound}/${totalRounds} — ${currentTurn}'s turn`);
+  updateStatus(`Round ${currentRound}/${totalRounds} — P1 is ${(currentStarter==='X')?'X':'O'} — ${currentTurn}'s turn`);
 }
 
 /* ---------- Gameplay ---------- */
@@ -500,14 +476,7 @@ function showRoundOutcome(symbol){
 function showMatchResult(){
   matchActive=false; lockControls(false);
   let title=''; if(p1Score===p2Score) title='Match Drawn'; else title=(p1Score>p2Score)?'Player 1 Wins the Match!':'Player 2 Wins the Match!';
-  document.getElementById('matchTitle').textContent=title;
-  document.getElementById('finalP1').textContent=p1Score;
-  document.getElementById('finalP2').textContent=p2Score;
-  const modal=document.getElementById('matchResult'); modal.style.display='block'; modal.setAttribute('aria-hidden','false');
-}
-
-function closeMatchResult(){
-  const modal=document.getElementById('matchResult'); modal.style.display='none'; modal.setAttribute('aria-hidden','true');
+  alert(`${title}\nFinal Score — P1: ${p1Score} | P2: ${p2Score}`);
   updateStatus('Match finished — press Start Match to play again or Reset to reconfigure.');
 }
 
