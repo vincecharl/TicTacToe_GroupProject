@@ -10,7 +10,6 @@
   --panel:rgba(10,10,20,0.85);
   --muted:#9ac7db;
   --glass:rgba(8,12,20,0.55);
-  --board-size:3;
 }
 
 /* ---------- Base / Background ---------- */
@@ -18,14 +17,14 @@ html,body{height:100%;margin:0}
 body{
   font-family: Inter, Arial, Helvetica, sans-serif;
   color: #e6f7ff;
-  height:100vh;
   display:flex;
+  flex-direction:column;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
+  min-height:100vh;
   background: linear-gradient(-45deg, #04040f, #060b18, #050510, #0f1220);
   background-size: 400% 400%;
   animation: bgMove 14s ease infinite;
-  overflow-x:hidden;
 }
 @keyframes bgMove{
   0%{background-position:0% 50%}
@@ -40,7 +39,8 @@ body{
   align-items:flex-start;
   width:min(1100px,96vw);
   padding:18px;
-  position:relative;
+  flex-wrap: wrap;
+  justify-content:center;
 }
 
 /* ---------- Sidebar Controls ---------- */
@@ -60,7 +60,7 @@ body{
 label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
 .small-muted{ font-size:13px; color:var(--muted); }
 
-.button-row{ display:flex; gap:8px; }
+.button-row{ display:flex; gap:8px; flex-wrap:wrap; }
 button,input[type="number"]{
   padding:8px 10px;
   border-radius:10px;
@@ -79,7 +79,7 @@ button.primary{
 }
 .preset-row{ display:flex; gap:8px; flex-wrap:wrap;}
 .preset-btn{
-  padding:6px 8px;
+  padding:6px 10px;
   background:transparent;
   border:1px solid rgba(255,255,255,0.04);
   color:#cfefff;
@@ -94,12 +94,10 @@ button.primary{
 
 /* ---------- Scoreboard ---------- */
 .scoreboard-top{
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
-  top:18px;
+  position:sticky;
+  top:10px;
   background:linear-gradient(180deg, rgba(6,8,15,0.9), rgba(8,12,24,0.7));
-  padding:14px 26px;
+  padding:12px 20px;
   border-radius:14px;
   border:1px solid rgba(255,255,255,0.04);
   box-shadow:0 12px 40px rgba(2,6,23,0.65);
@@ -108,15 +106,14 @@ button.primary{
   align-items:center;
   z-index:60;
   backdrop-filter:blur(6px);
-  flex-wrap:wrap;
 }
 .score-pill{
   font-weight:800;
   color:var(--accent);
-  font-size:18px;
+  font-size:16px;
   text-shadow:0 0 10px rgba(8,246,255,0.06);
 }
-.match-info{ color:var(--muted); font-size:15px; }
+.match-info{ color:var(--muted); font-size:14px; }
 #winnerText{
   margin-left:8px;
   font-weight:900;
@@ -142,13 +139,17 @@ button.primary{
 .board-area{ display:flex; align-items:center; justify-content:center; width:100% }
 #board-wrapper{
   position:relative;
-  padding:16px;
+  padding:18px;
   border-radius:26px;
   display:flex;
   align-items:center;
   justify-content:center;
-  min-width:min(420px,90vw);
+  min-width:320px;
+  max-width:600px;
+  width:90vw;
 }
+
+/* Neon background glow */
 #board-wrapper::before{
   content:"";
   position:absolute;
@@ -161,8 +162,15 @@ button.primary{
   z-index:10;
   pointer-events:none;
 }
-@keyframes neonRun{0%{background-position:0 0}100%{background-position:600% 0}}
-@keyframes neonBlurPulse{0%,100%{filter:blur(8px) saturate(1.1)}50%{filter:blur(14px) saturate(1.2)}}
+@keyframes neonRun{
+  0%{background-position:0% 0%} 100%{background-position:100% 100%}
+}
+@keyframes neonBlurPulse{
+  0%,100%{filter:blur(8px) saturate(1.1)}
+  50%{filter:blur(14px) saturate(1.2)}
+}
+
+/* Slanted scanlines */
 #board-wrapper::after {
   content:"";
   position:absolute;
@@ -173,13 +181,11 @@ button.primary{
     #ff00ff 0px,
     #ff00ff 2px,
     #00ffff 2px,
-    #00ffff 4px,
-    #ff00ff 4px,
-    #ff00ff 6px
+    #00ffff 4px
   );
   z-index:11;
   pointer-events:none;
-  opacity:0.35;
+  opacity:0.25;
   animation: scanlineMove 1s linear infinite;
   filter: blur(6px) saturate(1.1);
 }
@@ -187,34 +193,36 @@ button.primary{
   0% { background-position: 0 0; }
   100% { background-position: 20px 20px; }
 }
+
+/* ---------- Board Inner ---------- */
 #board-wrapper .inner{
   position:relative;
   z-index:20;
-  padding:22px;
+  padding:18px;
   border-radius:18px;
   background:linear-gradient(180deg, rgba(5,8,20,0.75), rgba(8,12,28,0.6));
   box-shadow: inset 0 2px 18px rgba(0,0,0,0.6);
   border:1px solid rgba(255,255,255,0.03);
+  width:100%;
 }
 
 /* ---------- Board Grid & Cells ---------- */
-#board{ display:grid; gap:8px; grid-template-columns: repeat(var(--board-size), 1fr); }
+#board{ display:grid; gap:6px; justify-content:center; }
 .cell{
-  width:100%;
-  aspect-ratio:1;
+  width:calc((100% - ((var(--cols,3)-1)*6px))/var(--cols,3));
+  aspect-ratio:1/1;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:clamp(28px, 6vw, 58px);
+  font-size:3.5vw;
   font-weight:900;
-  border-radius:14px;
+  border-radius:10px;
   background:linear-gradient(180deg, rgba(8,10,18,0.92), rgba(6,8,14,0.9));
   color:#e6f7ff;
   cursor:pointer;
   user-select:none;
   border:1px solid rgba(255,255,255,0.03);
   transition: transform .14s ease, box-shadow .18s ease, background .2s;
-  text-shadow:0 6px 18px rgba(0,0,0,0.45);
   position:relative;
   overflow:hidden;
 }
@@ -236,21 +244,32 @@ button.primary{
   0% { transform: translateX(-120%) skewX(-20deg); }
   100% { transform: translateX(120%) skewX(-20deg); }
 }
-.cell:hover{ transform:translateY(-4px) scale(1.02); box-shadow:0 8px 22px rgba(0,0,0,0.45),0 0 18px rgba(8,246,255,0.06), inset 0 0 10px rgba(8,246,255,0.02);}
-.cell.win{ box-shadow:0 8px 40px rgba(8,246,255,0.12),0 18px 80px rgba(80,0,255,0.08); transform:scale(1.06); background:linear-gradient(180deg, rgba(0,200,220,0.06), rgba(40,10,60,0.12)); border:2px solid rgba(8,246,255,0.18);} 
 
-/* ---------- Responsive layout ---------- */
-@media (max-width: 768px){
-  .app{ flex-direction: column; align-items: center; gap: 16px; }
-  .sidebar{ width: 95%; order: 2; }
-  #board-wrapper{ min-width: 90vw; padding: 12px; }
-  #board{ gap:6px; }
-  .scoreboard-top{ top:auto; bottom:10px; left:50%; transform:translateX(-50%); flex-wrap:wrap; padding:10px 16px; gap:12px; }
+/* Cell hover & win effects */
+.cell:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 6px 18px rgba(0,0,0,0.45),0 0 18px rgba(8,246,255,0.06), inset 0 0 8px rgba(8,246,255,0.02);
 }
+.cell.win{
+  box-shadow:0 8px 40px rgba(8,246,255,0.12),0 18px 80px rgba(80,0,255,0.08);
+  transform:scale(1.05);
+  background:linear-gradient(180deg, rgba(0,200,220,0.06), rgba(40,10,60,0.12));
+  border:2px solid rgba(8,246,255,0.18);
+}
+
+/* ---------- Responsive adjustments ---------- */
+@media (max-width:720px){
+  .app{flex-direction:column; gap:20px;}
+  .sidebar{width:90vw;}
+  #board-wrapper{width:95vw; padding:12px;}
+  #board-wrapper .inner{padding:12px;}
+  .cell{font-size:7vw;}
+}
+
 </style>
-</head>
 <body>
-<!-- Top scoreboard -->
+
+<!-- Scoreboard -->
 <div class="scoreboard-top card" role="status" aria-live="polite">
   <div class="match-info">Round <span id="currentRound">0</span> / <span id="totalRoundsDisp">—</span></div>
   <div class="score-pill">P1: <span id="p1Score">0</span></div>
@@ -270,7 +289,7 @@ button.primary{
       <div class="small-muted" style="margin-top:8px">Choose board before starting the match</div>
     </div>
     <div>
-      <label>Choose total rounds</label>
+      <label>Choose total rounds (Option A)</label>
       <div class="preset-row" id="presetRow">
         <button class="preset-btn" data-val="3" onclick="choosePreset(this)">3</button>
         <button class="preset-btn" data-val="5" onclick="choosePreset(this)">5</button>
@@ -283,9 +302,19 @@ button.primary{
       </div>
       <div class="small-muted" style="margin-top:8px">Pick a preset or enter a custom number, then press <b>Start Match</b>.</div>
     </div>
+        <!-- Board Area -->
+    <div class="board-area">
+      <div id="board-wrapper">
+        <div class="inner card" id="innerWrapper">
+          <div id="board" role="grid" aria-label="game board"></div>
+          <div id="status" style="margin-top:12px; text-align:center; color:var(--muted)">Press Start Match</div>
+        </div>
+      </div>
+    </div>
+
     <div>
       <label>Match controls</label>
-      <div style="display:flex; gap:8px; margin-top:6px;">
+      <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
         <button class="primary" id="startBtn" onclick="startMatch()">Start Match</button>
         <button class="" onclick="fullReset()">Full Reset</button>
       </div>
@@ -293,22 +322,20 @@ button.primary{
     </div>
     <div>
       <label>Sound</label>
-      <div style="display:flex; gap:8px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="" id="toggleSoundBtn" onclick="toggleSound()">Sound: On</button>
       </div>
     </div>
   </div>
-
-  <!-- Board Area -->
-  <div class="board-area">
-    <div id="board-wrapper">
-      <div class="inner card" id="innerWrapper">
-        <div id="board" role="grid" aria-label="game board"></div>
-        <div id="status" style="margin-top:12px; text-align:center; color:var(--muted)">Press Start Match</div>
-      </div>
-    </div>
-  </div>
 </div>
+
+<!-- Match Result Modal -->
+<div id="matchResult" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#e6f7ff;">
+  <h2 id="matchTitle" style="margin-bottom:12px;">Player 1 Wins the Match!</h2>
+  <p id="matchSub" style="margin-bottom:20px;">Final score — P1: <span id="finalP1">0</span> | P2: <span id="finalP2">0</span></p>
+  <button onclick="closeMatchResult()" style="padding:10px 16px;border-radius:10px;background:linear-gradient(90deg,#08f6ff,#3aa8ff);border:none;color:#001518;font-weight:700;">OK — Continue</button>
+</div>
+
 <script>
 /* ---------------- STATE ---------------- */
 let boardSize = 3;
@@ -330,7 +357,6 @@ const winSound = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/au
 function setBoardMode(n){
   if(matchActive) return;
   boardSize = n;
-  document.documentElement.style.setProperty('--board-size', n);
   document.getElementById('mode3').disabled = (n===3);
   document.getElementById('mode4').disabled = (n===4);
   renderEmptyBoard();
@@ -339,6 +365,7 @@ function setBoardMode(n){
 function renderEmptyBoard(){
   const boardEl = document.getElementById('board');
   boardEl.innerHTML='';
+  boardEl.style.setProperty('--cols', boardSize);
   boardEl.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
   board = Array(boardSize*boardSize).fill('');
   for(let i=0;i<board.length;i++){
@@ -354,6 +381,7 @@ function renderEmptyBoard(){
   document.getElementById('totalRoundsDisp').textContent=(totalRounds>0?totalRounds:'—');
 }
 
+/* ---------- Preset Rounds ---------- */
 function choosePreset(btn){
   if(matchActive) return;
   document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
@@ -425,7 +453,7 @@ function startRound(){
   document.querySelectorAll('.cell').forEach(c=>{ c.classList.remove('win'); c.textContent=''; });
   document.getElementById('currentRound').textContent=currentRound;
   document.getElementById('totalRoundsDisp').textContent=totalRounds;
-  updateStatus(`Round ${currentRound}/${totalRounds} — P1 is ${(currentStarter==='X')?'X':'O'} — ${currentTurn}'s turn`);
+  updateStatus(`Round ${currentRound}/${totalRounds} — ${currentTurn}'s turn`);
 }
 
 /* ---------- Gameplay ---------- */
@@ -454,7 +482,7 @@ function checkWinnerCombo(){
 
 /* ---------- Highlight & Scoring ---------- */
 function highlightCells(combo){ combo.forEach(i=>document.querySelectorAll('.cell')[i].classList.add('win')); }
-function awardPoint(symbol){ const p1Symbol=(currentRound%2===1)?'X':'O'; if(symbol===p1Symbol)p1Score++; else p2Score++; updateScoresUI(); }
+function awardPoint(symbol){ const p1Symbol='X'; if(symbol===p1Symbol)p1Score++; else p2Score++; updateScoresUI(); }
 function updateScoresUI(){ document.getElementById('p1Score').textContent=p1Score; document.getElementById('p2Score').textContent=p2Score; }
 
 /* ---------- Round End ---------- */
@@ -462,7 +490,7 @@ function showRoundOutcome(symbol){
   if(symbol && soundOn) try{ winSound.currentTime=0; winSound.play(); }catch(e){}
   const wEl=document.getElementById('winnerText');
   if(!symbol) wEl.textContent='Draw';
-  else{ const p1Symbol=(currentRound%2===1)?'X':'O'; const who=(symbol===p1Symbol)?'P1':'P2'; wEl.textContent=`${who} (${symbol}) wins`; }
+  else{ const who=(symbol==='X')?'P1':'P2'; wEl.textContent=`${who} (${symbol}) wins`; }
   wEl.classList.remove('winBounce'); void wEl.offsetWidth; wEl.classList.add('winBounce');
 
   setTimeout(()=>{
@@ -476,7 +504,14 @@ function showRoundOutcome(symbol){
 function showMatchResult(){
   matchActive=false; lockControls(false);
   let title=''; if(p1Score===p2Score) title='Match Drawn'; else title=(p1Score>p2Score)?'Player 1 Wins the Match!':'Player 2 Wins the Match!';
-  alert(`${title}\nFinal Score — P1: ${p1Score} | P2: ${p2Score}`);
+  document.getElementById('matchTitle').textContent=title;
+  document.getElementById('finalP1').textContent=p1Score;
+  document.getElementById('finalP2').textContent=p2Score;
+  const modal=document.getElementById('matchResult'); modal.style.display='flex'; modal.setAttribute('aria-hidden','false');
+}
+
+function closeMatchResult(){
+  const modal=document.getElementById('matchResult'); modal.style.display='none'; modal.setAttribute('aria-hidden','true');
   updateStatus('Match finished — press Start Match to play again or Reset to reconfigure.');
 }
 
