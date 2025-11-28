@@ -24,7 +24,7 @@ body{
   background: linear-gradient(-45deg, #04040f, #060b18, #050510, #0f1220);
   background-size: 400% 400%;
   animation: bgMove 14s ease infinite;
-  overflow:hidden;
+  overflow-x:hidden;
 }
 @keyframes bgMove{
   0%{background-position:0% 50%}
@@ -148,7 +148,7 @@ button.primary{
   min-width:min(680px,66vw);
 }
 
-/* ---------- Existing neon gradient glow ---------- */
+/* ---------- Neon gradient glow ---------- */
 #board-wrapper::before{
   content:"";
   position:absolute;
@@ -162,7 +162,7 @@ button.primary{
   pointer-events:none;
 }
 
-/* ---------- NEW: Neon slanted moving scanlines ---------- */
+/* ---------- Neon slanted moving scanlines ---------- */
 #board-wrapper::after {
   content:"";
   position:absolute;
@@ -220,44 +220,6 @@ button.primary{
   position:relative;
   overflow:hidden;
 }
-
-/* Optional: subtle neon scanline overlay on cells */
-.cell::after {
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:14px;
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(255,0,255,0.05) 0px,
-    rgba(255,0,255,0.05) 2px,
-    rgba(0,255,255,0.05) 2px,
-    rgba(0,255,255,0.05) 4px
-  );
-  animation: cellScan 1.5s linear infinite;
-  pointer-events:none;
-}
-@keyframes cellScan {
-  0% { background-position: 0 0; }
-  100% { background-position: 10px 10px; }
-}
-
-/* ---------- Cell Hover & Win Effects ---------- */
-.cell:hover{
-  transform:translateY(-6px) scale(1.04);
-  box-shadow:0 12px 30px rgba(0,0,0,0.45),0 0 28px rgba(8,246,255,0.06), inset 0 0 14px rgba(8,246,255,0.02);
-}
-.cell.win{
-  box-shadow:0 8px 40px rgba(8,246,255,0.12),0 18px 80px rgba(80,0,255,0.08);
-  transform:scale(1.06);
-  background:linear-gradient(180deg, rgba(0,200,220,0.06), rgba(40,10,60,0.12));
-  border:2px solid rgba(8,246,255,0.18);
-} 
-.cell {
-  position: relative;
-  overflow: hidden;
-}
-
 .cell::after {
   content: '';
   position: absolute;
@@ -272,22 +234,40 @@ button.primary{
   animation: neonWave 1.6s linear infinite;
   pointer-events: none;
 }
-
 @keyframes neonWave {
   0% { transform: translateX(-120%) skewX(-20deg); }
   100% { transform: translateX(120%) skewX(-20deg); }
 }
+.cell:hover{
+  transform:translateY(-6px) scale(1.04);
+  box-shadow:0 12px 30px rgba(0,0,0,0.45),0 0 28px rgba(8,246,255,0.06), inset 0 0 14px rgba(8,246,255,0.02);
+}
+.cell.win{
+  box-shadow:0 8px 40px rgba(8,246,255,0.12),0 18px 80px rgba(80,0,255,0.08);
+  transform:scale(1.06);
+  background:linear-gradient(180deg, rgba(0,200,220,0.06), rgba(40,10,60,0.12));
+  border:2px solid rgba(8,246,255,0.18);
+}
 
-/* Optional: stagger wave animation for each cell */
-.cell:nth-child(1)::after { animation-delay: 0s; }
-.cell:nth-child(2)::after { animation-delay: 0.1s; }
-.cell:nth-child(3)::after { animation-delay: 0.2s; }
-/* Continue for all cells... JS will auto-apply delay for dynamic boards */
-
-/* ---------- Other styles remain unchanged... ---------- */
+/* ---------- Responsive adjustments ---------- */
+@media (max-width: 1024px) {
+  .app { flex-direction: column; align-items: center; gap: 18px; padding: 12px; }
+  .sidebar { width: 90%; max-width: 400px; }
+  #board-wrapper { min-width: 90vw; padding: 16px; }
+  #board { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); }
+  .cell { width: 60px; height: 60px; font-size: 28px; }
+  button,input[type="number"] { padding: 8px 10px; font-size: 14px; }
+  .scoreboard-top { flex-wrap: wrap; gap: 12px; padding: 10px 14px; top: 8px; }
+}
+@media (max-width: 480px) {
+  #board { grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); }
+  .cell { width: 50px; height: 50px; font-size: 24px; }
+  .sidebar { padding: 8px; }
+}
 </style>
+</head>
 <body>
-<!-- Top scoreboard -->
+  <!-- Top scoreboard -->
 <div class="scoreboard-top card" role="status" aria-live="polite">
   <div class="match-info">Round <span id="currentRound">0</span> / <span id="totalRoundsDisp">—</span></div>
   <div class="score-pill">P1: <span id="p1Score">0</span></div>
@@ -348,10 +328,10 @@ button.primary{
 </div>
 
 <!-- Match Result Modal -->
-<div id="matchResult" role="dialog" aria-modal="true" aria-hidden="true">
+<div id="matchResult" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);padding:20px;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,0.6);z-index:100;color:#cfefff;text-align:center;">
   <h2 id="matchTitle">Player 1 Wins the Match!</h2>
   <p id="matchSub">Final score — P1: <span id="finalP1">0</span> | P2: <span id="finalP2">0</span></p>
-  <button onclick="closeMatchResult()">OK — Continue</button>
+  <button class="primary" onclick="closeMatchResult()">OK — Continue</button>
 </div>
 
 <script>
@@ -378,19 +358,12 @@ function setBoardMode(n){
   document.getElementById('mode3').disabled = (n===3);
   document.getElementById('mode4').disabled = (n===4);
   renderEmptyBoard();
-} function staggerNeonWaves(){
-  const cells = document.querySelectorAll('.cell');
-  cells.forEach((c,i)=>{
-    c.style.setProperty('--delay', `${i*0.08}s`);
-    c.querySelector('::after'); // ensure pseudo-element inherits
-  });
 }
 
-// Call it after board is rendered
 function renderEmptyBoard(){
   const boardEl = document.getElementById('board');
   boardEl.innerHTML='';
-  boardEl.style.gridTemplateColumns = `repeat(${boardSize}, 120px)`;
+  boardEl.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
   board = Array(boardSize*boardSize).fill('');
   for(let i=0;i<board.length;i++){
     const cell = document.createElement('div');
@@ -399,7 +372,6 @@ function renderEmptyBoard(){
     cell.onclick=()=>cellClick(i);
     boardEl.appendChild(cell);
   }
-  staggerNeonWaves(); // apply stagger
   updateStatus('Ready — pick rounds and press Start Match');
   updateScoresUI();
   document.getElementById('currentRound').textContent=currentRound;
@@ -429,25 +401,6 @@ function applyCustom(){
   totalRounds = val;
   document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('totalRoundsDisp').textContent=totalRounds;
-}
-
-/* ---------- Board render ---------- */
-function renderEmptyBoard(){
-  const boardEl = document.getElementById('board');
-  boardEl.innerHTML='';
-  boardEl.style.gridTemplateColumns = `repeat(${boardSize}, 120px)`;
-  board = Array(boardSize*boardSize).fill('');
-  for(let i=0;i<board.length;i++){
-    const cell = document.createElement('div');
-    cell.className='cell';
-    cell.dataset.i=i;
-    cell.onclick=()=>cellClick(i);
-    boardEl.appendChild(cell);
-  }
-  updateStatus('Ready — pick rounds and press Start Match');
-  updateScoresUI();
-  document.getElementById('currentRound').textContent=currentRound;
-  document.getElementById('totalRoundsDisp').textContent=(totalRounds>0?totalRounds:'—');
 }
 
 /* ---------- Start / Control ---------- */
@@ -496,7 +449,7 @@ function startRound(){
   document.querySelectorAll('.cell').forEach(c=>{ c.classList.remove('win'); c.textContent=''; });
   document.getElementById('currentRound').textContent=currentRound;
   document.getElementById('totalRoundsDisp').textContent=totalRounds;
-  updateStatus(`Round ${currentRound}/${totalRounds} — P1 is ${(currentStarter==='X')?'X':'O'} — ${currentTurn}'s turn`);
+  updateStatus(`Round ${currentRound}/${totalRounds} — ${currentTurn}'s turn`);
 }
 
 /* ---------- Gameplay ---------- */
