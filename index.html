@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tic Tac Toe || Group Project</title>
+<style>
+:root{
+  --accent:#08f6ff;
+  --panel:rgba(10,10,20,0.85);
+  --muted:#9ac7db;
+  --glass:rgba(8,12,20,0.55);
+}
+
+/* ---------- Base / Background ---------- */
+html,body{height:100%;margin:0}
+body{
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  color: #e6f7ff;
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: linear-gradient(-45deg, #04040f, #060b18, #050510, #0f1220);
+  background-size: 400% 400%;
+  animation: bgMove 14s ease infinite;
+  overflow:hidden;
+}
+@keyframes bgMove{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+/* ---------- App Layout ---------- */
+.app{
+  display:flex;
+  gap:32px;
+  align-items:flex-start;
+  width:min(1100px,96vw);
+  padding:18px;
+  position:relative;
+}
+
+/* ---------- Sidebar Controls ---------- */
+.sidebar{
+  width:240px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.card{
+  background: var(--panel);
+  border-radius:12px;
+  padding:12px;
+  box-shadow:0 10px 30px rgba(2,6,23,0.6);
+  border:1px solid rgba(255,255,255,0.03);
+}
+label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
+.small-muted{ font-size:13px; color:var(--muted); }
+
+.button-row{ display:flex; gap:8px; }
+button,input[type="number"]{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  color:#cfefff;
+  font-weight:700;
+  cursor:pointer;
+}
+button.primary{
+  background:linear-gradient(90deg,#08f6ff,#3aa8ff);
+  color:#001518;
+  border:none;
+  padding:10px 14px;
+  box-shadow:0 10px 30px rgba(8,246,255,0.06);
+}
+.preset-row{ display:flex; gap:8px; flex-wrap:wrap;}
+.preset-btn{
+  padding:8px 10px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.04);
+  color:#cfefff;
+  border-radius:8px;
+  cursor:pointer;
+}
+.preset-btn.active{
+  background:linear-gradient(90deg, rgba(8,246,255,0.12), rgba(24,137,255,0.06));
+  box-shadow:0 8px 30px rgba(8,246,255,0.06);
+  border-color:rgba(8,246,255,0.18);
+}
+
+/* ---------- Scoreboard ---------- */
+.scoreboard-top{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  top:18px;
+  background:linear-gradient(180deg, rgba(6,8,15,0.9), rgba(8,12,24,0.7));
+  padding:14px 26px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.04);
+  box-shadow:0 12px 40px rgba(2,6,23,0.65);
+  display:flex;
+  gap:24px;
+  align-items:center;
+  z-index:60;
+  backdrop-filter:blur(6px);
+}
+.score-pill{
+  font-weight:800;
+  color:var(--accent);
+  font-size:18px;
+  text-shadow:0 0 10px rgba(8,246,255,0.06);
+}
+.match-info{ color:var(--muted); font-size:15px; }
+#winnerText{
+  margin-left:8px;
+  font-weight:900;
+  color:#bff8ff;
+  padding:6px 12px;
+  border-radius:10px;
+  background:linear-gradient(90deg, rgba(8,246,255,0.06), rgba(24,137,255,0.02));
+  transform-origin:center;
+  transition: transform .24s ease, opacity .24s ease;
+  opacity:0;
+}
+.winBounce{
+  animation:winBounce .8s cubic-bezier(.2,.9,.3,1);
+  opacity:1;
+}
+@keyframes winBounce{
+  0%{transform:translateY(-6px) scale(.96)}
+  50%{transform:translateY(0) scale(1.05)}
+  100%{transform:translateY(-2px) scale(1)}
+}
+
+/* ---------- Board ---------- */
+.board-area{ display:flex; align-items:center; justify-content:center; width:100% }
+#board-wrapper{
+  position:relative;
+  padding:22px;
+  border-radius:26px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:min(680px,66vw);
+}
+
+/* ---------- Existing neon gradient glow ---------- */
+#board-wrapper::before{
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border-radius:30px;
+  background:linear-gradient(120deg, rgba(0,255,255,0.95), rgba(0,120,255,0.95), rgba(140,70,255,0.95), rgba(0,255,200,0.9));
+  background-size:600% 600%;
+  animation:neonRun 3s linear infinite, neonBlurPulse 2.2s ease-in-out infinite;
+  filter:blur(10px) saturate(1.1);
+  z-index:10;
+  pointer-events:none;
+}
+
+/* ---------- NEW: Neon slanted moving scanlines ---------- */
+#board-wrapper::after {
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border-radius:30px;
+  background: repeating-linear-gradient(
+    45deg,
+    #ff00ff 0px,
+    #ff00ff 2px,
+    #00ffff 2px,
+    #00ffff 4px,
+    #ff00ff 4px,
+    #ff00ff 6px
+  );
+  z-index:11;
+  pointer-events:none;
+  opacity:0.35;
+  animation: scanlineMove 1s linear infinite;
+  filter: blur(6px) saturate(1.1);
+}
+@keyframes scanlineMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 20px 20px; }
+}
+
+/* ---------- Board Inner ---------- */
+#board-wrapper .inner{
+  position:relative;
+  z-index:20;
+  padding:22px;
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(5,8,20,0.75), rgba(8,12,28,0.6));
+  box-shadow: inset 0 2px 18px rgba(0,0,0,0.6);
+  border:1px solid rgba(255,255,255,0.03);
+}
+
+/* ---------- Board Grid & Cells ---------- */
+#board{ display:grid; gap:12px; }
+.cell{
+  width:120px;
+  height:120px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:58px;
+  font-weight:900;
+  border-radius:14px;
+  background:linear-gradient(180deg, rgba(8,10,18,0.92), rgba(6,8,14,0.9));
+  color:#e6f7ff;
+  cursor:pointer;
+  user-select:none;
+  border:1px solid rgba(255,255,255,0.03);
+  transition: transform .14s ease, box-shadow .18s ease, background .2s;
+  text-shadow:0 6px 18px rgba(0,0,0,0.45);
+  position:relative;
+  overflow:hidden;
+}
+
+/* Optional: subtle neon scanline overlay on cells */
+.cell::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:14px;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255,0,255,0.05) 0px,
+    rgba(255,0,255,0.05) 2px,
+    rgba(0,255,255,0.05) 2px,
+    rgba(0,255,255,0.05) 4px
+  );
+  animation: cellScan 1.5s linear infinite;
+  pointer-events:none;
+}
+@keyframes cellScan {
+  0% { background-position: 0 0; }
+  100% { background-position: 10px 10px; }
+}
+
+/* ---------- Cell Hover & Win Effects ---------- */
+.cell:hover{
+  transform:translateY(-6px) scale(1.04);
+  box-shadow:0 12px 30px rgba(0,0,0,0.45),0 0 28px rgba(8,246,255,0.06), inset 0 0 14px rgba(8,246,255,0.02);
+}
+.cell.win{
+  box-shadow:0 8px 40px rgba(8,246,255,0.12),0 18px 80px rgba(80,0,255,0.08);
+  transform:scale(1.06);
+  background:linear-gradient(180deg, rgba(0,200,220,0.06), rgba(40,10,60,0.12));
+  border:2px solid rgba(8,246,255,0.18);
+} 
+.cell {
+  position: relative;
+  overflow: hidden;
+}
+
+.cell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(8,246,255,0.12),
+    rgba(8,246,255,0.12) 2px,
+    rgba(8,246,255,0) 5px
+  );
+  transform: translateX(-100%) skewX(-20deg);
+  animation: neonWave 1.6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes neonWave {
+  0% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(120%) skewX(-20deg); }
+}
+
+/* Optional: stagger wave animation for each cell */
+.cell:nth-child(1)::after { animation-delay: 0s; }
+.cell:nth-child(2)::after { animation-delay: 0.1s; }
+.cell:nth-child(3)::after { animation-delay: 0.2s; }
+/* Continue for all cells... JS will auto-apply delay for dynamic boards */
+
+/* ---------- Other styles remain unchanged... ---------- */
+</style>
+<body>
+<!-- Top scoreboard -->
+<div class="scoreboard-top card" role="status" aria-live="polite">
+  <div class="match-info">Round <span id="currentRound">0</span> / <span id="totalRoundsDisp">—</span></div>
+  <div class="score-pill">P1: <span id="p1Score">0</span></div>
+  <div class="score-pill">P2: <span id="p2Score">0</span></div>
+  <div id="winnerText" aria-hidden="true"></div>
+</div>
+
+<div class="app">
+  <!-- Sidebar Controls -->
+  <div class="sidebar card" aria-hidden="false">
+    <div>
+      <label>Board size:</label>
+      <div class="button-row">
+        <button id="mode3" onclick="setBoardMode(3)">3 × 3</button>
+        <button id="mode4" onclick="setBoardMode(4)">4 × 4</button>
+      </div>
+      <div class="small-muted" style="margin-top:8px">Choose board before starting the match</div>
+    </div>
+    <div>
+      <label>Choose total rounds (Option A)</label>
+      <div class="preset-row" id="presetRow">
+        <button class="preset-btn" data-val="3" onclick="choosePreset(this)">3</button>
+        <button class="preset-btn" data-val="5" onclick="choosePreset(this)">5</button>
+        <button class="preset-btn" data-val="7" onclick="choosePreset(this)">7</button>
+        <button class="preset-btn" data-val="0" onclick="choosePreset(this)">Custom</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <input id="customRounds" type="number" min="1" placeholder="Custom" style="flex:1" />
+        <button class="primary" id="setRoundsBtn" onclick="applyCustom()">Set</button>
+      </div>
+      <div class="small-muted" style="margin-top:8px">Pick a preset or enter a custom number, then press <b>Start Match</b>.</div>
+    </div>
+    <div>
+      <label>Match controls</label>
+      <div style="display:flex; gap:8px; margin-top:6px;">
+        <button class="primary" id="startBtn" onclick="startMatch()">Start Match</button>
+        <button class="" onclick="fullReset()">Full Reset</button>
+      </div>
+      <div class="small-muted" style="margin-top:8px">During a match controls are locked. Match ends after the chosen number of rounds.</div>
+    </div>
+    <div>
+      <label>Sound</label>
+      <div style="display:flex; gap:8px;">
+        <button class="" id="toggleSoundBtn" onclick="toggleSound()">Sound: On</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board Area -->
+  <div class="board-area">
+    <div id="board-wrapper">
+      <div class="inner card" id="innerWrapper" style="min-width:420px;">
+        <div id="board" role="grid" aria-label="game board"></div>
+        <div id="status" style="margin-top:12px; text-align:center; color:var(--muted)">Press Start Match</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Match Result Modal -->
+<div id="matchResult" role="dialog" aria-modal="true" aria-hidden="true">
+  <h2 id="matchTitle">Player 1 Wins the Match!</h2>
+  <p id="matchSub">Final score — P1: <span id="finalP1">0</span> | P2: <span id="finalP2">0</span></p>
+  <button onclick="closeMatchResult()">OK — Continue</button>
+</div>
+
+<script>
+/* ---------------- STATE ---------------- */
+let boardSize = 3;
+let board = [];
+let currentStarter = 'X';
+let currentTurn = 'X';
+let totalRounds = 0;
+let currentRound = 0;
+let matchActive = false;
+let p1Score = 0;
+let p2Score = 0;
+let soundOn = true;
+
+/* Audio */
+const clickSound = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_8a05bbf400.mp3?filename=click-124467.mp3");
+const winSound = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_36e768f5ad.mp3?filename=win-136927.mp3");
+
+/* ---------- Helpers & UI ---------- */
+function setBoardMode(n){
+  if(matchActive) return;
+  boardSize = n;
+  document.getElementById('mode3').disabled = (n===3);
+  document.getElementById('mode4').disabled = (n===4);
+  renderEmptyBoard();
+} function staggerNeonWaves(){
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach((c,i)=>{
+    c.style.setProperty('--delay', `${i*0.08}s`);
+    c.querySelector('::after'); // ensure pseudo-element inherits
+  });
+}
+
+// Call it after board is rendered
+function renderEmptyBoard(){
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML='';
+  boardEl.style.gridTemplateColumns = `repeat(${boardSize}, 120px)`;
+  board = Array(boardSize*boardSize).fill('');
+  for(let i=0;i<board.length;i++){
+    const cell = document.createElement('div');
+    cell.className='cell';
+    cell.dataset.i=i;
+    cell.onclick=()=>cellClick(i);
+    boardEl.appendChild(cell);
+  }
+  staggerNeonWaves(); // apply stagger
+  updateStatus('Ready — pick rounds and press Start Match');
+  updateScoresUI();
+  document.getElementById('currentRound').textContent=currentRound;
+  document.getElementById('totalRoundsDisp').textContent=(totalRounds>0?totalRounds:'—');
+}
+
+function choosePreset(btn){
+  if(matchActive) return;
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const v = Number(btn.dataset.val);
+  if(v===0){
+    totalRounds = 0;
+    document.getElementById('totalRoundsDisp').textContent='—';
+    document.getElementById('customRounds').focus();
+  } else {
+    totalRounds = v;
+    document.getElementById('totalRoundsDisp').textContent=totalRounds;
+    document.getElementById('customRounds').value='';
+  }
+}
+
+function applyCustom(){
+  if(matchActive) return;
+  const val = Number(document.getElementById('customRounds').value);
+  if(!val || val<1){ alert('Enter a valid number of rounds (≥1).'); return; }
+  totalRounds = val;
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('totalRoundsDisp').textContent=totalRounds;
+}
+
+/* ---------- Board render ---------- */
+function renderEmptyBoard(){
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML='';
+  boardEl.style.gridTemplateColumns = `repeat(${boardSize}, 120px)`;
+  board = Array(boardSize*boardSize).fill('');
+  for(let i=0;i<board.length;i++){
+    const cell = document.createElement('div');
+    cell.className='cell';
+    cell.dataset.i=i;
+    cell.onclick=()=>cellClick(i);
+    boardEl.appendChild(cell);
+  }
+  updateStatus('Ready — pick rounds and press Start Match');
+  updateScoresUI();
+  document.getElementById('currentRound').textContent=currentRound;
+  document.getElementById('totalRoundsDisp').textContent=(totalRounds>0?totalRounds:'—');
+}
+
+/* ---------- Start / Control ---------- */
+function startMatch(){
+  if(matchActive) return;
+  if(!totalRounds || totalRounds<1){ alert('Choose total rounds first.'); return; }
+  matchActive=true;
+  currentRound=1;
+  p1Score=0;
+  p2Score=0;
+  updateScoresUI();
+  lockControls(true);
+  startRound();
+}
+
+function lockControls(lock){
+  document.getElementById('mode3').disabled=lock;
+  document.getElementById('mode4').disabled=lock;
+  document.querySelectorAll('.preset-btn').forEach(b=>b.disabled=lock);
+  document.getElementById('customRounds').disabled=lock;
+  document.getElementById('setRoundsBtn').disabled=lock;
+  document.getElementById('startBtn').disabled=lock;
+}
+
+function fullReset(){
+  matchActive=false;
+  totalRounds=0;
+  currentRound=0;
+  p1Score=0;
+  p2Score=0;
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('customRounds').value='';
+  document.getElementById('totalRoundsDisp').textContent='—';
+  document.getElementById('p1Score').textContent='0';
+  document.getElementById('p2Score').textContent='0';
+  lockControls(false);
+  renderEmptyBoard();
+}
+
+/* ---------- Round Lifecycle ---------- */
+function startRound(){
+  if(!matchActive) return;
+  currentStarter=(currentRound%2===1)?'X':'O';
+  currentTurn=currentStarter;
+  board=Array(boardSize*boardSize).fill('');
+  document.querySelectorAll('.cell').forEach(c=>{ c.classList.remove('win'); c.textContent=''; });
+  document.getElementById('currentRound').textContent=currentRound;
+  document.getElementById('totalRoundsDisp').textContent=totalRounds;
+  updateStatus(`Round ${currentRound}/${totalRounds} — P1 is ${(currentStarter==='X')?'X':'O'} — ${currentTurn}'s turn`);
+}
+
+/* ---------- Gameplay ---------- */
+function cellClick(i){
+  if(!matchActive || board[i]!=='') return;
+  board[i]=currentTurn; renderBoard();
+  if(soundOn) try{ clickSound.currentTime=0; clickSound.play(); }catch(e){}
+  const combo = checkWinnerCombo();
+  if(combo){ highlightCells(combo); awardPoint(board[combo[0]]); showRoundOutcome(board[combo[0]]); return; }
+  if(board.every(v=>v!=='')){ showRoundOutcome(null); return; }
+  currentTurn=(currentTurn==='X')?'O':'X';
+  updateStatus(`Round ${currentRound}/${totalRounds} — ${currentTurn}'s turn`);
+}
+
+function renderBoard(){ document.querySelectorAll('.cell').forEach((c,i)=>c.textContent=board[i]); }
+
+/* ---------- Winner detection ---------- */
+function checkWinnerCombo(){
+  const n=boardSize;
+  for(let r=0;r<n;r++){ const line=[]; for(let c=0;c<n;c++) line.push(r*n+c); if(line.every(i=>board[i]!==''&&board[i]===board[line[0]])) return line; }
+  for(let c=0;c<n;c++){ const line=[]; for(let r=0;r<n;r++) line.push(r*n+c); if(line.every(i=>board[i]!==''&&board[i]===board[line[0]])) return line; }
+  const diag=[...Array(n).keys()].map(i=>i*(n+1)); if(diag.every(i=>board[i]!==''&&board[i]===board[diag[0]])) return diag;
+  const adiag=[...Array(n).keys()].map(i=>(i+1)*(n-1)); if(adiag.every(i=>board[i]!==''&&board[i]===board[adiag[0]])) return adiag;
+  return null;
+}
+
+/* ---------- Highlight & Scoring ---------- */
+function highlightCells(combo){ combo.forEach(i=>document.querySelectorAll('.cell')[i].classList.add('win')); }
+function awardPoint(symbol){ const p1Symbol=(currentRound%2===1)?'X':'O'; if(symbol===p1Symbol)p1Score++; else p2Score++; updateScoresUI(); }
+function updateScoresUI(){ document.getElementById('p1Score').textContent=p1Score; document.getElementById('p2Score').textContent=p2Score; }
+
+/* ---------- Round End ---------- */
+function showRoundOutcome(symbol){
+  if(symbol && soundOn) try{ winSound.currentTime=0; winSound.play(); }catch(e){}
+  const wEl=document.getElementById('winnerText');
+  if(!symbol) wEl.textContent='Draw';
+  else{ const p1Symbol=(currentRound%2===1)?'X':'O'; const who=(symbol===p1Symbol)?'P1':'P2'; wEl.textContent=`${who} (${symbol}) wins`; }
+  wEl.classList.remove('winBounce'); void wEl.offsetWidth; wEl.classList.add('winBounce');
+
+  setTimeout(()=>{
+    wEl.classList.remove('winBounce'); wEl.textContent='';
+    currentRound++;
+    if(currentRound>totalRounds) showMatchResult(); else startRound();
+  },1200);
+}
+
+/* ---------- Match Finish ---------- */
+function showMatchResult(){
+  matchActive=false; lockControls(false);
+  let title=''; if(p1Score===p2Score) title='Match Drawn'; else title=(p1Score>p2Score)?'Player 1 Wins the Match!':'Player 2 Wins the Match!';
+  document.getElementById('matchTitle').textContent=title;
+  document.getElementById('finalP1').textContent=p1Score;
+  document.getElementById('finalP2').textContent=p2Score;
+  const modal=document.getElementById('matchResult'); modal.style.display='block'; modal.setAttribute('aria-hidden','false');
+}
+
+function closeMatchResult(){
+  const modal=document.getElementById('matchResult'); modal.style.display='none'; modal.setAttribute('aria-hidden','true');
+  updateStatus('Match finished — press Start Match to play again or Reset to reconfigure.');
+}
+
+/* ---------- Misc ---------- */
+function updateStatus(msg){ document.getElementById('status').textContent=msg; }
+function toggleSound(){ soundOn=!soundOn; document.getElementById('toggleSoundBtn').textContent='Sound: '+(soundOn?'On':'Off'); }
+
+/* ---------- Init ---------- */
+function init(){
+  renderEmptyBoard();
+  document.getElementById('totalRoundsDisp').textContent='—';
+  document.getElementById('currentRound').textContent=0;
+  document.getElementById('p1Score').textContent=0;
+  document.getElementById('p2Score').textContent=0;
+}
+init();
+</script>
+</body>
+</html>
