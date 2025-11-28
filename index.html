@@ -96,7 +96,7 @@ button.primary{
 }
 
 /* ---------- Scoreboard ---------- */
-.scoreboard-top{
+#scoreBoard{
   position:absolute;
   left:50%;
   transform:translateX(-50%);
@@ -212,37 +212,16 @@ button.primary{
   #board{ gap:4px; }
   .cell{ width:60px; height:60px; font-size:28px; }
   .sidebar{ width:90vw; }
-} /* ---------- Responsive adjustments ---------- */
+} 
 @media screen and (max-width: 600px){
-  .app {
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    padding: 12px;
-  }
+  .app { flex-direction: column; align-items: center; gap: 16px; padding: 12px; }
+  .sidebar { width: 100%; max-height: 40vh; overflow-y: auto; }
+  #board-wrapper { min-width: 90vw; padding: 16px; }
+  #board { gap: 6px; grid-template-columns: repeat(var(--board-size), 1fr); }
+  .cell { width: calc(90vw / var(--board-size) - 6px); height: calc(90vw / var(--board-size) - 6px); font-size: calc(30px + var(--board-size) * 4px); }
+}
 
-  .sidebar {
-    width: 100%;
-    max-height: 40vh; /* limit height */
-    overflow-y: auto;  /* allow scrolling */
-  }
-
-  #board-wrapper {
-    min-width: 90vw;
-    padding: 16px;
-  }
-
-  #board {
-    gap: 6px; /* cells closer */
-    grid-template-columns: repeat(var(--board-size), 1fr); /* responsive columns */
-  }
-
-  .cell {
-    width: calc(90vw / var(--board-size) - 6px);
-    height: calc(90vw / var(--board-size) - 6px);
-    font-size: calc(30px + var(--board-size) * 4px); /* scale font smaller for mobile */
-  }
-} * Hide score board on mobile initially */
+/* Hide scoreboard initially on mobile */
 @media (max-width: 768px) {
   #scoreBoard {
     display: none;
@@ -252,7 +231,7 @@ button.primary{
 </head>
 <body>
 <!-- Top scoreboard -->
-<div class="scoreboard-top card" role="status" aria-live="polite">
+<div id="scoreBoard" class="scoreboard-top card" role="status" aria-live="polite">
   <div class="match-info">Round <span id="currentRound">0</span> / <span id="totalRoundsDisp">—</span></div>
   <div class="score-pill">P1: <span id="p1Score">0</span></div>
   <div class="score-pill">P2: <span id="p2Score">0</span></div>
@@ -413,7 +392,7 @@ function startMatch(){
   // Show scoreboard on mobile
   const scoreEl = document.getElementById('scoreBoard');
   if(window.innerWidth <= 768){
-    scoreEl.style.display = 'flex'; // or 'block' depending on your layout
+    scoreEl.style.display = 'flex';
   }
 
   lockControls(true);
@@ -443,6 +422,11 @@ function fullReset(){
   document.getElementById('p2Score').textContent='0';
   lockControls(false);
   renderEmptyBoard();
+
+  // Hide scoreboard on mobile
+  if(window.innerWidth <= 768){
+    document.getElementById('scoreBoard').style.display='none';
+  }
 }
 
 /* ---------- Round Lifecycle ---------- */
@@ -461,7 +445,7 @@ function startRound(){
 /* ---------- Gameplay ---------- */
 function cellClick(i){
   if(!matchActive || board[i]!=='') return;
-  if(aiMode!=='none' && currentTurn==='O') return; // prevent player from clicking AI turn
+  if(aiMode!=='none' && currentTurn==='O') return;
   makeMove(i);
 }
 
