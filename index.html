@@ -242,6 +242,11 @@ button.primary{
     height: calc(90vw / var(--board-size) - 6px);
     font-size: calc(30px + var(--board-size) * 4px); /* scale font smaller for mobile */
   }
+} * Hide score board on mobile initially */
+@media (max-width: 768px) {
+  #scoreBoard {
+    display: none;
+  }
 }
 </style>
 </head>
@@ -394,12 +399,23 @@ function applyCustom(){
 /* ---------- Start / Control ---------- */
 function startMatch(){
   if(matchActive) return;
-  if(!totalRounds || totalRounds<1){ alert('Choose total rounds first.'); return; }
-  matchActive=true;
-  currentRound=1;
-  p1Score=0;
-  p2Score=0;
+  if(!totalRounds || totalRounds<1){ 
+    alert('Choose total rounds first.'); 
+    return; 
+  }
+
+  matchActive = true;
+  currentRound = 1;
+  p1Score = 0;
+  p2Score = 0;
   updateScoresUI();
+
+  // Show scoreboard on mobile
+  const scoreEl = document.getElementById('scoreBoard');
+  if(window.innerWidth <= 768){
+    scoreEl.style.display = 'flex'; // or 'block' depending on your layout
+  }
+
   lockControls(true);
   startRound();
 }
